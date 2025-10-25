@@ -138,7 +138,7 @@ public:
         glUniformMatrix4fv(uLightSpaceMatrixLoc, 1, GL_FALSE, lightSpaceMatrix.m);
 
         // Light direction (CPU → GPU, 3 floats)
-        Vec3 lightDir = Vec3(0.3f, 0.8f, 0.5f).normalized();
+        Vec3 lightDir = Vec3(-0.45f, 0.82f, -0.4f).normalized();
         glUniform3f(uLightDirLoc, lightDir.x, lightDir.y, lightDir.z);
 
         // Ambient lighting (CPU → GPU, 1 float)

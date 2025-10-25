@@ -3,6 +3,7 @@
 3D renderer built in C++ with OpenGL 3.3 Core. GPU-accelerated rendering with conventional shadow mapping, full MVP transformation pipeline, and FPS camera controls.
 
 Majorly WIP still. This is more of a learning experience than a tech showcase to me.
+I needed a reason to try out C++ and have always wanted to toy with rendering engines. This seemed like a prime opportunity.
 Also, ig not technically a renderer/rendering engine yet. still using OpenGL for that part. While the eventual goal is to have a standalone "engine" that can do that, for now im learning the basics of what would be expected out of a piece of software like that.
 
 ## Core Functionality

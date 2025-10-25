@@ -228,12 +228,14 @@ void main() {
     // (Same issue we'd have if we interpolated normals in software renderer)
     // ==========================================================================
     vec3 normal = normalize(fragNormal);
+    float facing = dot(normal, uLightDir);
+    vec3 litNormal = facing < 0.0 ? -normal : normal;
 
     // ==========================================================================
     // CALCULATE SHADOW
     // 0.0 = fully lit, 1.0 = fully shadowed
     // ==========================================================================
-    float shadow = calculateShadow(fragLightSpace, normal, uLightDir);
+    float shadow = calculateShadow(fragLightSpace, litNormal, uLightDir);
 
     // ==========================================================================
     // LAMBERTIAN DIFFUSE LIGHTING
@@ -244,7 +246,7 @@ void main() {
     // NOW WITH SHADOWS: multiply diffuse by (1.0 - shadow)
     // If shadow = 1.0, diffuse becomes 0 (only ambient light remains)
     // ==========================================================================
-    float diffuse = max(dot(normal, uLightDir), 0.0);
+    float diffuse = max(abs(facing), 0.0);
     float brightness = uAmbient + (1.0 - uAmbient) * diffuse * (1.0 - shadow);
 
     // ==========================================================================
