@@ -6,7 +6,7 @@
 // =============================================================================
 // WHAT ARE SHADERS?
 // - Small programs written in GLSL (OpenGL Shading Language)
-// - Compiled and run ON THE GPU (not CPU!)
+// - Compiled and run ON THE GPU (not CPU)
 // - Massively parallel (run on thousands of cores simultaneously)
 //
 // TWO TYPES WE USE:
@@ -56,7 +56,7 @@ uniform mat4 uProjection;  // Projection matrix (camera → clip space)
 
 // =============================================================================
 // OUTPUTS (passed to fragment shader)
-// GPU automatically interpolates these across triangle!
+// GPU automatically interpolates these across triangle
 // =============================================================================
 out vec3 fragColor;      // Color (interpolated per-pixel)
 out vec3 fragNormal;     // Normal (interpolated per-pixel)
@@ -70,8 +70,8 @@ uniform mat4 uLightSpaceMatrix;  // Light's view-projection matrix
 
 // =============================================================================
 // MAIN FUNCTION
-// This runs on GPU for EVERY vertex in the mesh!
-// For a sphere with 800 vertices, this runs 800 times in PARALLEL!
+// This runs on GPU for EVERY vertex in the mesh
+// For a sphere with 800 vertices, this runs 800 times in PARALLEL
 // =============================================================================
 void main() {
     // ==========================================================================
@@ -101,14 +101,14 @@ void main() {
     // This is what we do in Renderer3D.h:140:
     //   Vec3 worldNormal = modelMatrix.transformDirection(objectNormal)
     //
-    // mat3(uModel) extracts rotation/scale, discards translation (correct for normals!)
+    // mat3(uModel) extracts rotation/scale, discards translation (correct for normals)
     // ==========================================================================
     fragNormal = normalize(mat3(uModel) * aNormal);
 
     // ==========================================================================
     // PASS COLOR TO FRAGMENT SHADER
     // GPU will automatically interpolate across triangle
-    // (This is what barycentric coordinates do in our software renderer!)
+    // (This is what barycentric coordinates do in our software renderer)
     // ==========================================================================
     fragColor = aColor;
 }
@@ -124,7 +124,6 @@ void main() {
 // THIS REPLACES: Our lighting calculation and pixel writing
 //                (Renderer3D.h:136-170)
 //
-// For a 100×100 pixel triangle, this runs 10,000 times in PARALLEL!
 // =============================================================================
 
 const char* FRAGMENT_SHADER = R"(
@@ -132,10 +131,10 @@ const char* FRAGMENT_SHADER = R"(
 
 // =============================================================================
 // INPUTS (from vertex shader, interpolated by GPU)
-// These vary per-pixel - GPU automatically interpolates using barycentric coords!
+// These vary per-pixel - GPU automatically interpolates using barycentric coords
 // =============================================================================
 in vec3 fragColor;       // Interpolated color
-in vec3 fragNormal;      // Interpolated normal (NOT normalized after interpolation!)
+in vec3 fragNormal;      // Interpolated normal (NOT normalized after interpolation)
 in vec3 fragWorldPos;    // Interpolated world position
 in vec4 fragLightSpace;  // Interpolated light-space position
 
@@ -149,7 +148,7 @@ uniform sampler2D uShadowMap; // Shadow map texture (depth from light's POV)
 
 // =============================================================================
 // OUTPUT
-// This is the final pixel color that appears on screen!
+// This is the final pixel color that appears on screen
 // =============================================================================
 out vec4 finalColor;
 
@@ -208,10 +207,9 @@ float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
 
 // =============================================================================
 // MAIN FUNCTION
-// This runs on GPU for EVERY pixel inside EVERY triangle!
+// This runs on GPU for EVERY pixel inside EVERY triangle
 //
 // For 830 triangles × 50×50 avg pixels = 2 MILLION times per frame
-// All in PARALLEL on thousands of GPU cores!
 // =============================================================================
 void main() {
     // ==========================================================================
@@ -280,7 +278,7 @@ void main() {
 // - Fragment shader: runs on ALL pixels in PARALLEL
 // - Thousands of cores, billions of operations/second
 //
-// RESULT: 100-1000× faster!
+// RESULT: 100-1000× faster
 // =============================================================================
 
 // =============================================================================
@@ -309,7 +307,7 @@ const char* SHADOW_FRAGMENT_SHADER = R"(
 #version 330 core
 
 void main() {
-    // We don't need to write anything!
+    // We don't need to write anything
     // OpenGL automatically writes gl_FragDepth (the depth value)
     // That's all we need for the shadow map
 }

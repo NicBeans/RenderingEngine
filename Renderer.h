@@ -56,7 +56,6 @@ public:
     // WHY THIS ALGORITHM?
     // - Pure integer math (was crucial in 1960s, still faster today)
     // - No gaps, no antialiasing (we'll add that later if you want)
-    // - Industry standard for 60+ years!
     //
     // OPTIMIZATION: Modern CPUs can do float math fast, but this is still
     // used because it's predictable and works well with fixed-point math
@@ -118,7 +117,6 @@ public:
     // 1. Find where the scanline enters and exits the triangle
     // 2. Fill pixels between entry and exit
     //
-    // This is how GPUs do it! (with massive parallelism)
     // ==========================================================================
     void drawTriangle(Vec2 v0, Vec2 v1, Vec2 v2, const Color& color) {
         // ======================================================================
@@ -140,11 +138,11 @@ public:
     // DRAW CIRCLE - Midpoint Circle Algorithm
     // ==========================================================================
     // PROBLEM: Circle equation is x² + y² = r²
-    // If we solve for y = √(r² - x²), we need square roots (SLOW!)
+    // If we solve for y = √(r² - x²), we need square roots (SLOW)
     //
     // SOLUTION: Midpoint algorithm (similar to Bresenham)
     // Uses 8-way symmetry: if we draw 1/8 of circle, we can mirror it 8 times
-    // Only uses integer arithmetic!
+    // Only uses integer arithmetic
     // ==========================================================================
     void drawCircle(int cx, int cy, int radius, const Color& color) {
         int x = 0;
@@ -295,7 +293,7 @@ private:
     //
     // SOLUTION: Barycentric coordinates
     // Express P as: P = w0*v0 + w1*v1 + w2*v2 where w0+w1+w2 = 1
-    // If all weights (w0, w1, w2) are >= 0, point is inside!
+    // If all weights (w0, w1, w2) are >= 0, point is inside
     //
     // IMPLEMENTATION: Use cross products (sign tells us which side of edge)
     // This is the SAME math GPUs use for triangle rasterization!

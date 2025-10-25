@@ -39,9 +39,9 @@ struct Vertex {
 // With:     Vertices: [v0, v1, v2, v3], Indices: [0,1,2, 2,1,3] (4 vertices + 6 indices)
 //
 // Saves memory! A vertex is ~32 bytes, an index is 4 bytes.
-// For a cube: 24 vertices vs 8 vertices + 36 indices = 67% memory reduction!
+// For a cube: 24 vertices vs 8 vertices + 36 indices = 67% memory reduction
 //
-// WINDING ORDER (CRITICAL!):
+// WINDING ORDER (CRITICAL):
 // Vertices must be in counter-clockwise order when viewed from front
 // Used for backface culling: don't draw triangles facing away
 // =============================================================================
@@ -97,7 +97,7 @@ public:
 
     // ==========================================================================
     // PRIMITIVE GENERATORS
-    // These create basic 3D shapes - building blocks of 3D graphics!
+    // These create basic 3D shapes - building blocks of 3D graphics
     // ==========================================================================
 
     // ==========================================================================
@@ -263,7 +263,7 @@ public:
                 float z = ringRadius * std::sin(theta);
 
                 Vec3 position(x, y, z);
-                Vec3 normal = position.normalized();  // For sphere, normal = normalized position!
+                Vec3 normal = position.normalized();  // For sphere, normal = normalized position
 
                 mesh.vertices.push_back(Vertex(position, normal, color));
             }

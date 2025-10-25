@@ -44,7 +44,7 @@ struct Color {
     // COLOR BLENDING (ALPHA COMPOSITING)
     // Formula: result = foreground * alpha + background * (1 - alpha)
     //
-    // This is how transparency works! Used everywhere in UIs, sprites, etc.
+    // how transparency works used everywhere in UIs, sprites, etc.
     // The math: if alpha = 1.0, fully opaque (show foreground)
     //           if alpha = 0.0, fully transparent (show background)
     // ==========================================================================
@@ -82,8 +82,8 @@ struct Color {
 
 // =============================================================================
 // Define static colors
-// IMPORTANT: We use uint8_t{} to explicitly tell compiler which constructor!
-// Without this, "255" could be uint8_t OR float (ambiguous!)
+// IMPORTANT: We use uint8_t{} to explicitly tell compiler which constructor
+// Without this, "255" could be uint8_t OR float (ambiguous)
 // =============================================================================
 inline const Color Color::BLACK   = Color(uint8_t{0}, uint8_t{0}, uint8_t{0});
 inline const Color Color::WHITE   = Color(uint8_t{255}, uint8_t{255}, uint8_t{255});

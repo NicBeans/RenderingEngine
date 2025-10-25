@@ -17,7 +17,6 @@
 // - View: world space → camera space (where is the camera?)
 // - Projection: camera space → clip space → screen (perspective)
 //
-// This is THE fundamental pipeline of 3D graphics!
 // =============================================================================
 
 class Camera {
