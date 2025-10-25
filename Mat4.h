@@ -7,7 +7,6 @@
 // =============================================================================
 // Mat4: 4×4 Matrix for 3D Transformations
 // =============================================================================
-// THE FOUNDATION OF 3D GRAPHICS!
 //
 // Every 3D transformation is a matrix:
 // - Translation (move)
@@ -52,7 +51,7 @@ struct Mat4 {
         m[0] = m[5] = m[10] = m[15] = 1.0f;
     }
 
-    // Construct from 16 floats (column-major order!)
+    // Construct from 16 floats (column-major order)
     Mat4(float m0,  float m1,  float m2,  float m3,
          float m4,  float m5,  float m6,  float m7,
          float m8,  float m9,  float m10, float m11,
@@ -65,7 +64,6 @@ struct Mat4 {
 
     // ==========================================================================
     // MATRIX MULTIPLICATION
-    // THE MOST IMPORTANT OPERATION!
     //
     // Combines transformations: M = A * B means "do B first, then A"
     // Example: projection * view * model
@@ -99,7 +97,7 @@ struct Mat4 {
     // MATRIX-VECTOR MULTIPLICATION
     // Transform a point/vector: result = M * v
     //
-    // This is how we transform vertices!
+    // This is how we transform vertices
     // Each vertex is multiplied by model, view, projection matrices
     // ==========================================================================
     Vec4 operator*(const Vec4& v) const {
@@ -245,7 +243,7 @@ struct Mat4 {
     // 2. Build rotation that aligns these with world axes
     // 3. Apply translation to move camera to origin
     //
-    // This is THE view matrix for cameras!
+    // This is THE view matrix for cameras
     // ==========================================================================
     static Mat4 lookAt(const Vec3& eye, const Vec3& target, const Vec3& up) {
         // Calculate camera's forward vector (points from eye to target)
@@ -284,7 +282,6 @@ struct Mat4 {
     // ==========================================================================
     // PERSPECTIVE PROJECTION MATRIX
     // ==========================================================================
-    // THE MAGIC THAT MAKES 3D LOOK 3D!
     //
     // Parameters:
     // - fovY: Field of view in Y axis (radians). Typical: 45° = 0.785 rad
@@ -295,7 +292,7 @@ struct Mat4 {
     // HOW PERSPECTIVE WORKS:
     // 1. Matrix scales x,y based on z (depth)
     // 2. Stores depth in w component
-    // 3. Later: x/w, y/w makes distant objects smaller!
+    // 3. Later: x/w, y/w makes distant objects smaller
     //
     // FIELD OF VIEW (FOV):
     // - Small FOV (30°): telephoto lens, zoom in

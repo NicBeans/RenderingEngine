@@ -18,10 +18,10 @@
 // - Sends matrices and draws with minimal CPU work
 //
 // COMPARED TO Renderer3D (software):
-// - No pixel loops!
-// - No manual depth testing!
-// - No framebuffer writes!
-// - GPU does it all in hardware!
+// - No pixel loops
+// - No manual depth testing
+// - No framebuffer writes
+// - GPU does it all in hardware
 // =============================================================================
 
 class RendererGL {
@@ -97,13 +97,12 @@ public:
 
     // ==========================================================================
     // DRAW MESH
-    // This is SO MUCH SIMPLER than software renderer!
     //
     // Compare to Renderer3D::drawMesh (Renderer3D.h:31-183)
     // - No vertex loops
     // - No pixel loops
     // - No manual depth testing
-    // - Just set uniforms and call draw!
+    // - Just set uniforms and call draw
     // ==========================================================================
     void drawMesh(const Mesh& mesh,
                   const Mat4& modelMatrix,
@@ -163,7 +162,6 @@ public:
 
         // ======================================================================
         // DRAW CALL
-        // This is where the magic happens!
         // GPU processes ALL vertices and pixels in PARALLEL
         //
         // What happens on GPU:
@@ -173,7 +171,6 @@ public:
         // 4. GPU depth tests (hardware)
         // 5. GPU writes to framebuffer (hardware)
         //
-        // All in microseconds!
         // ======================================================================
         glDrawElements(
             GL_TRIANGLES,              // Draw triangles
@@ -301,7 +298,7 @@ private:
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
 
-        std::cout << "Shaders compiled and linked successfully!" << std::endl;
+        std::cout << "Shaders compiled and linked successfully" << std::endl;
     }
 
     // ==========================================================================

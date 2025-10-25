@@ -18,7 +18,7 @@
 //
 // 2. PERSPECTIVE DIVISION:
 //    - Divide by w: (x/w, y/w, z/w) → Normalized Device Coordinates (NDC)
-//    - This makes distant objects smaller!
+//    - This makes distant objects smaller
 //
 // 3. VIEWPORT TRANSFORM:
 //    - Convert NDC [-1,1] to screen pixels [0, width/height]
@@ -29,7 +29,7 @@
 // 5. FRAGMENT PROCESSING:
 //    - Lighting, texturing, shading (we'll do simple flat shading)
 //
-// This mirrors what GPUs do, but on CPU!
+// This mirrors what GPUs do, but on CPU
 // =============================================================================
 
 class Renderer3D : public Renderer {
@@ -124,12 +124,12 @@ public:
             float cross = edge1.cross(edge2);
 
             if (cross <= 0) {
-                continue;  // Back-facing, skip!
+                continue;  // Back-facing, skip
             }
 
             // ================================================================
             // LIGHTING CALCULATION
-            // CRITICAL: Transform normal from object space to world space!
+            // CRITICAL: Transform normal from object space to world space
             // ================================================================
 
             // Calculate triangle normal in object space
