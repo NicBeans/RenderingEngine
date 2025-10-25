@@ -2,6 +2,8 @@
 
 3D renderer built in C++ with OpenGL 3.3 Core. GPU-accelerated rendering with conventional shadow mapping, full MVP transformation pipeline, and FPS camera controls.
 
+Majorly WIP still. This is more of a learning experience than a tech showcase to me.
+
 ## Core Functionality
 
 ### **Mathematics** (`Vec2.h`, `Vec3.h`, `Vec4.h`, `Mat4.h`)
