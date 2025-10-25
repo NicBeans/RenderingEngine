@@ -1,31 +1,3 @@
-// =============================================================================
-// 3D RENDERER DEMO - OpenGL GPU Accelerated!
-// =============================================================================
-// This demonstrates the FULL 3D rendering pipeline:
-// - 3D transformations (translate, rotate, scale)
-// - Camera system (view and projection matrices)
-// - Perspective projection (3D → 2D)
-// - Z-buffering (depth testing) - IN HARDWARE!
-// - Backface culling - IN HARDWARE!
-// - Simple lighting (diffuse + ambient) - ON GPU!
-// - Multiple meshes in a scene
-//
-// GPU PIPELINE (all in parallel on thousands of cores):
-// Vertex (3D) → Vertex Shader (GPU) → World/Camera/Clip Space
-//             → Rasterization (GPU Hardware)
-//             → Fragment Shader (GPU) → Lighting + Color
-//             → Depth Test (GPU Hardware)
-//             → Framebuffer (GPU VRAM)
-//             → Display!
-//
-// CPU ONLY DOES:
-// - Update matrices (16 floats/mesh/frame)
-// - Issue draw calls (1 per mesh)
-// - Handle input
-//
-// RESULT: 100-1000× faster than software renderer!
-// =============================================================================
-
 #include "WindowGL.h"
 #include "RendererGL.h"
 #include "Mesh.h"
@@ -34,6 +6,7 @@
 #include "Vec3.h"
 #include <iostream>
 #include <cmath>
+#include <array>
 
 int main() {
     const int WINDOW_WIDTH = 800;
@@ -57,7 +30,7 @@ int main() {
         // Aspect: 800/600 = 1.333
         // ======================================================================
         Camera camera(
-            Vec3(0, 2, 8),     // Eye position
+            Vec3(0, 2, -8),     // Eye position
             Vec3(0, 0, 0),     // Look at origin
             Vec3(0, 1, 0),     // Up vector
             90.0f,             // Field of view (degrees)
@@ -72,32 +45,34 @@ int main() {
         // Using more saturated, interesting colors that show lighting better
         // ======================================================================
 
-        // Cube (center) - Vibrant cyan/turquoise
-        Mesh cube = Mesh::createCube(1.5f, Color(uint8_t{0}, uint8_t{200}, uint8_t{255}));
+        // Letter N segments (reuse scaled cubes for each bar of the glyph)
+        Mesh letterBar = Mesh::createCube(1.0f, Color(uint8_t{40}, uint8_t{190}, uint8_t{255}));
 
-        // Pyramid (left) - Bright orange
-        Mesh pyramid = Mesh::createPyramid(1.5f, Color(uint8_t{255}, uint8_t{140}, uint8_t{0}));
+        // Corner cube (CC) pieces (base + two walls to mock a room corner)
+        Mesh ccFloor = Mesh::createCube(1.0f, Color(uint8_t{160}, uint8_t{160}, uint8_t{160}));
+        Mesh ccWallX = Mesh::createCube(1.0f, Color(uint8_t{190}, uint8_t{190}, uint8_t{190}));
+        Mesh ccWallZ = Mesh::createCube(1.0f, Color(uint8_t{190}, uint8_t{190}, uint8_t{190}));
 
-        // Sphere (right) - Purple/magenta
-        Mesh sphere = Mesh::createSphere(1.0f, 20, 20, Color(uint8_t{200}, uint8_t{50}, uint8_t{255}));
-
-        // Ground plane (large flat cube) - Light gray (not too dark)
-        Mesh ground = Mesh::createCube(1.0f, Color(uint8_t{150}, uint8_t{150}, uint8_t{150}));
+        // Render both sides so walls/floor remain opaque from every viewing angle
+        ccFloor.makeDoubleSided();
+        ccWallX.makeDoubleSided();
+        ccWallZ.makeDoubleSided();
 
         // ======================================================================
         // LIGHT SOURCE VISUALIZATION
         // Create a small bright sphere to show where light is coming from
-        // Light direction: (0.3, 0.8, 0.5) normalized
+        // Light direction: (-0.45, 0.82, -0.4) normalized (aims down + into the corner)
         // ======================================================================
-        Vec3 lightDirection = Vec3(0.3f, 0.8f, 0.5f).normalized();
+        Vec3 lightDirection = Vec3(-0.45f, 0.82f, -0.4f).normalized();
         Mesh lightSource = Mesh::createSphere(0.3f, 10, 10, Color(uint8_t{255}, uint8_t{255}, uint8_t{200}));
 
         std::cout << "=== Renderer ===" << std::endl;
         std::cout << "Resolution: " << WINDOW_WIDTH << "x" << WINDOW_HEIGHT << std::endl;
         std::cout << "Meshes loaded:" << std::endl;
-        std::cout << "  Cube: " << cube.getTriangleCount() << " triangles" << std::endl;
-        std::cout << "  Pyramid: " << pyramid.getTriangleCount() << " triangles" << std::endl;
-        std::cout << "  Sphere: " << sphere.getTriangleCount() << " triangles" << std::endl;
+        std::cout << "  Letter-N bar mesh: " << letterBar.getTriangleCount() << " triangles" << std::endl;
+        std::cout << "  CC floor: " << ccFloor.getTriangleCount() << " triangles" << std::endl;
+        std::cout << "  CC wall (X): " << ccWallX.getTriangleCount() << " triangles" << std::endl;
+        std::cout << "  CC wall (Z): " << ccWallZ.getTriangleCount() << " triangles" << std::endl;
         std::cout << "\nControls:" << std::endl;
         std::cout << "  W/A/S/D: Move camera (forward/left/back/right)" << std::endl;
         std::cout << "  Arrow Keys: Look around (rotate view)" << std::endl;
@@ -105,7 +80,7 @@ int main() {
         std::cout << "  ESC: Quit" << std::endl;
 
         // ======================================================================
-        // ANIMATION STATE
+        // TIME STEP & MOVEMENT SPEEDS
         // ======================================================================
         float time = 0.0f;
         const float dt = 1.0f / 60.0f;  // 60 FPS timestep
@@ -205,28 +180,45 @@ int main() {
             // Order matters! Scale first, then rotate, then translate
             // ==================================================================
 
-            // CUBE (center) - Rotating on all axes
-            Mat4 cubeModel = Mat4::translate(0, 1, 0)        // Position at y=1 (above ground)
-                           * Mat4::rotateY(time * 0.5f)      // Spin around Y axis
-                           * Mat4::rotateX(time * 0.3f)      // Tilt on X axis
-                           * Mat4::scale(1.0f);              // Normal size
+            // LETTER N ROOT - Shared transform for all three bars of the glyph
+            Mat4 letterRoot = Mat4::translate(1.5f, 1.0f, 1.5f)      // Between light source and CC corner
+                             * Mat4::rotateY(time * 0.6f)            // Steady spin (≈34°/s)
+                             * Mat4::rotateX(0.35f);                 // Slight tilt for depth readability
 
-            // PYRAMID (left) - Rotating and bobbing up/down
-            float bobHeight = 1.5f + std::sin(time * 2.0f) * 0.3f;  // Oscillate
-            Mat4 pyramidModel = Mat4::translate(-3, bobHeight, 0)   // Left of center
-                              * Mat4::rotateY(time * 0.8f)          // Faster spin
-                              * Mat4::scale(1.0f);
+            const float legHeight = 2.75f;
+            const float legThickness = 0.4f;
+            const float legDepth = 0.6f;
+            const float legOffsetX = 0.85f;
+            const float innerSpanX = 2.0f * (legOffsetX - legThickness * 0.5f);
+            const float diagonalLength = std::sqrt(innerSpanX * innerSpanX + legHeight * legHeight) + legThickness;
+            const float diagonalAngle = -std::atan2(innerSpanX, legHeight);
 
-            // SPHERE (right) - Orbiting around center
-            float orbitRadius = 3.0f;
-            float orbitX = std::cos(time * 0.7f) * orbitRadius;
-            float orbitZ = std::sin(time * 0.7f) * orbitRadius;
-            Mat4 sphereModel = Mat4::translate(orbitX, 1.5f, orbitZ)
-                             * Mat4::scale(1.0f);
+            // Build local transforms for each bar (left vertical, right vertical, diagonal)
+            std::array<Mat4, 3> letterSegments = {
+                letterRoot * (Mat4::translate(-legOffsetX, 0.0f, 0.0f)
+                              * Mat4::scale(legThickness, legHeight, legDepth)),
+                letterRoot * (Mat4::translate(legOffsetX, 0.0f, 0.0f)
+                              * Mat4::scale(legThickness, legHeight, legDepth)),
+                letterRoot * (Mat4::rotateZ(diagonalAngle)
+                              * Mat4::scale(legThickness, diagonalLength, legDepth))
+            };
 
-            // GROUND PLANE - Flat, wide platform
-            Mat4 groundModel = Mat4::translate(0, -0.5f, 0)         // Below objects
-                             * Mat4::scale(10.0f, 0.2f, 10.0f);     // Wide and flat
+            // CC ROOT - 180° spin keeps the corner behind the glyph relative to the light
+            const Mat4 ccTurn = Mat4::rotateY(static_cast<float>(M_PI));
+
+            // CC FLOOR - Light gray platform catching the shadow footprint
+            Mat4 floorModel = Mat4::translate(1.5f, -0.7f, 1.5f)     // Inner corner sits directly beneath the glyph (≈1.5, 0, 1.5)
+                             * ccTurn
+                             * Mat4::scale(6.0f, 0.2f, 6.0f);        // Wide, thin slab
+
+            // CC WALLS - Two panels forming the L-shaped backdrop
+            Mat4 wallXModel = Mat4::translate(4.5f, 0.7f, 1.5f)      // X-side wall hugs the glyph's left edge
+                             * ccTurn
+                             * Mat4::scale(0.2f, 3.0f, 6.0f);        // Tall along Y, deep along Z
+
+            Mat4 wallZModel = Mat4::translate(1.5f, 0.7f, 4.5f)      // Z-side wall closes the corner behind the glyph
+                             * ccTurn
+                             * Mat4::scale(6.0f, 3.0f, 0.2f);        // Mirror layout
 
             // LIGHT SOURCE - Position far away in light direction
             Mat4 lightModel = Mat4::translate(lightPos.x, lightPos.y, lightPos.z)
@@ -239,10 +231,12 @@ int main() {
             renderer.beginShadowPass();
 
             // Render all shadow-casting objects
-            renderer.renderShadowMesh(ground, groundModel, lightSpaceMatrix);
-            renderer.renderShadowMesh(cube, cubeModel, lightSpaceMatrix);
-            renderer.renderShadowMesh(pyramid, pyramidModel, lightSpaceMatrix);
-            renderer.renderShadowMesh(sphere, sphereModel, lightSpaceMatrix);
+            renderer.renderShadowMesh(ccFloor, floorModel, lightSpaceMatrix);
+            renderer.renderShadowMesh(ccWallX, wallXModel, lightSpaceMatrix);
+            renderer.renderShadowMesh(ccWallZ, wallZModel, lightSpaceMatrix);
+            for (const Mat4& segment : letterSegments) {
+                renderer.renderShadowMesh(letterBar, segment, lightSpaceMatrix);
+            }
             // Don't render light source to shadow map (it's emissive)
 
             renderer.endShadowPass(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -253,13 +247,15 @@ int main() {
             // ==================================================================
             window.clear();  // Clear screen for normal rendering
 
-            // Draw ground first
-            renderer.drawMesh(ground, groundModel, camera, lightSpaceMatrix);
+            // Draw corner environment
+            renderer.drawMesh(ccFloor, floorModel, camera, lightSpaceMatrix);
+            renderer.drawMesh(ccWallX, wallXModel, camera, lightSpaceMatrix);
+            renderer.drawMesh(ccWallZ, wallZModel, camera, lightSpaceMatrix);
 
-            // Draw main objects
-            renderer.drawMesh(cube, cubeModel, camera, lightSpaceMatrix);
-            renderer.drawMesh(pyramid, pyramidModel, camera, lightSpaceMatrix);
-            renderer.drawMesh(sphere, sphereModel, camera, lightSpaceMatrix);
+            // Draw spinning letter (after walls so it sits in front)
+            for (const Mat4& segment : letterSegments) {
+                renderer.drawMesh(letterBar, segment, camera, lightSpaceMatrix);
+            }
 
             // Draw light source (emissive = true, so it glows and isn't affected by lighting)
             renderer.drawMesh(lightSource, lightModel, camera, lightSpaceMatrix, true);
@@ -294,9 +290,7 @@ int main() {
             // ==================================================================
             window.swapBuffers();
 
-            // ==================================================================
-            // UPDATE TIME
-            // ==================================================================
+            // Advance animation clock (drives the spinning letter)
             time += dt;
         }
 

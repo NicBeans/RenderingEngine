@@ -68,6 +68,33 @@ public:
         v2 = vertices[indices[idx + 2]];
     }
 
+    // Duplicate geometry with flipped normals so both sides render with correct lighting
+    void makeDoubleSided() {
+        size_t originalVertexCount = vertices.size();
+        size_t originalIndexCount = indices.size();
+
+        vertices.reserve(originalVertexCount * 2);
+        indices.reserve(originalIndexCount * 2);
+
+        for (size_t i = 0; i < originalVertexCount; ++i) {
+            Vertex mirrored = vertices[i];
+            mirrored.normal = -mirrored.normal;
+            vertices.push_back(mirrored);
+        }
+
+        uint32_t offset = static_cast<uint32_t>(originalVertexCount);
+
+        for (size_t i = 0; i < originalIndexCount; i += 3) {
+            uint32_t i0 = indices[i];
+            uint32_t i1 = indices[i + 1];
+            uint32_t i2 = indices[i + 2];
+
+            indices.push_back(i0 + offset);
+            indices.push_back(i2 + offset);
+            indices.push_back(i1 + offset);
+        }
+    }
+
     // ==========================================================================
     // PRIMITIVE GENERATORS
     // These create basic 3D shapes - building blocks of 3D graphics!
