@@ -2,7 +2,7 @@
 
 3D renderer built in C++ with OpenGL 3.3 Core. GPU-accelerated rendering with conventional shadow mapping, full MVP transformation pipeline, and FPS camera controls.
 
-Majorly WIP still. This is more of a learning experience than a tech showcase to me.
+Majorly WIP still. This is more of a learning experience than a tech showcase to me. I needed a reason to try out C++ and have always wanted to toy with rendering engines. This seemed like a prime opportunity.
 
 ## Core Functionality
 
