@@ -1,6 +1,6 @@
 # 3D Renderer
 
-From-scratch 3D renderer built in C++ with OpenGL 3.3 Core. GPU-accelerated rendering with conventional shadow mapping, full MVP transformation pipeline, and FPS camera controls.
+3D renderer built in C++ with OpenGL 3.3 Core. GPU-accelerated rendering with conventional shadow mapping, full MVP transformation pipeline, and FPS camera controls.
 
 ## Core Functionality
 
