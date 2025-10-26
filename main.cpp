@@ -50,17 +50,17 @@ int main() {
 
         // ======================================================================
         // CREATE CAMERA
-        // Position: (0, 2, 8) - above and back from origin
-        // Target: (0, 0, 0) - looking at world center
+        // Position: looking into the corner from outside
+        // Target: center of the corner area where N will be
         // Up: (0, 1, 0) - Y is up
         // FOV: 60 degrees
         // Aspect: 800/600 = 1.333
         // ======================================================================
         Camera camera(
-            Vec3(0, 2, 8),     // Eye position
-            Vec3(0, 0, 0),     // Look at origin
+            Vec3(5, 3, 5),     // Eye position - outside the corner, elevated
+            Vec3(1, 1.5, 1),   // Look at where the N will be
             Vec3(0, 1, 0),     // Up vector
-            90.0f,             // Field of view (degrees)
+            75.0f,             // Field of view (degrees)
             static_cast<float>(WINDOW_WIDTH) / WINDOW_HEIGHT,  // Aspect ratio
             0.1f,              // Near plane
             100.0f             // Far plane
@@ -72,17 +72,11 @@ int main() {
         // Using more saturated, interesting colors that show lighting better
         // ======================================================================
 
-        // Cube (center) - Vibrant cyan/turquoise
-        Mesh cube = Mesh::createCube(1.5f, Color(uint8_t{0}, uint8_t{200}, uint8_t{255}));
+        // Letter N (spinning object) - Vibrant cyan/turquoise
+        Mesh letterN = Mesh::createLetterN(2.0f, 1.5f, 0.2f, Color(uint8_t{0}, uint8_t{200}, uint8_t{255}));
 
-        // Pyramid (left) - Bright orange
-        Mesh pyramid = Mesh::createPyramid(1.5f, Color(uint8_t{255}, uint8_t{140}, uint8_t{0}));
-
-        // Sphere (right) - Purple/magenta
-        Mesh sphere = Mesh::createSphere(1.0f, 20, 20, Color(uint8_t{200}, uint8_t{50}, uint8_t{255}));
-
-        // Ground plane (large flat cube) - Light gray (not too dark)
-        Mesh ground = Mesh::createCube(1.0f, Color(uint8_t{150}, uint8_t{150}, uint8_t{150}));
+        // Corner cube (CC) - replaces ground - Bright white/reflective for better shadow visibility
+        Mesh cornerCube = Mesh::createCornerCube(10.0f, Color(uint8_t{240}, uint8_t{240}, uint8_t{240}));
 
         // ======================================================================
         // LIGHT SOURCE VISUALIZATION
@@ -95,9 +89,8 @@ int main() {
         std::cout << "=== Renderer ===" << std::endl;
         std::cout << "Resolution: " << WINDOW_WIDTH << "x" << WINDOW_HEIGHT << std::endl;
         std::cout << "Meshes loaded:" << std::endl;
-        std::cout << "  Cube: " << cube.getTriangleCount() << " triangles" << std::endl;
-        std::cout << "  Pyramid: " << pyramid.getTriangleCount() << " triangles" << std::endl;
-        std::cout << "  Sphere: " << sphere.getTriangleCount() << " triangles" << std::endl;
+        std::cout << "  Letter N: " << letterN.getTriangleCount() << " triangles" << std::endl;
+        std::cout << "  Corner Cube: " << cornerCube.getTriangleCount() << " triangles" << std::endl;
         std::cout << "\nControls:" << std::endl;
         std::cout << "  W/A/S/D: Move camera (forward/left/back/right)" << std::endl;
         std::cout << "  Arrow Keys: Look around (rotate view)" << std::endl;
@@ -205,28 +198,14 @@ int main() {
             // Order matters! Scale first, then rotate, then translate
             // ==================================================================
 
-            // CUBE (center) - Rotating on all axes
-            Mat4 cubeModel = Mat4::translate(0, 1, 0)        // Position at y=1 (above ground)
-                           * Mat4::rotateY(time * 0.5f)      // Spin around Y axis
-                           * Mat4::rotateX(time * 0.3f)      // Tilt on X axis
-                           * Mat4::scale(1.0f);              // Normal size
+            // LETTER N - Spinning around Y axis, positioned in the corner
+            Mat4 letterNModel = Mat4::translate(1.5, 1.0, 1.5)  // Position in the corner (floor at y=0, walls at x=0 and z=0)
+                              * Mat4::rotateY(time * 0.8f)      // Spin around Y axis
+                              * Mat4::scale(0.8f);              // Slightly smaller for better fit
 
-            // PYRAMID (left) - Rotating and bobbing up/down
-            float bobHeight = 1.5f + std::sin(time * 2.0f) * 0.3f;  // Oscillate
-            Mat4 pyramidModel = Mat4::translate(-3, bobHeight, 0)   // Left of center
-                              * Mat4::rotateY(time * 0.8f)          // Faster spin
-                              * Mat4::scale(1.0f);
-
-            // SPHERE (right) - Orbiting around center
-            float orbitRadius = 3.0f;
-            float orbitX = std::cos(time * 0.7f) * orbitRadius;
-            float orbitZ = std::sin(time * 0.7f) * orbitRadius;
-            Mat4 sphereModel = Mat4::translate(orbitX, 1.5f, orbitZ)
-                             * Mat4::scale(1.0f);
-
-            // GROUND PLANE - Flat, wide platform
-            Mat4 groundModel = Mat4::translate(0, -0.5f, 0)         // Below objects
-                             * Mat4::scale(10.0f, 0.2f, 10.0f);     // Wide and flat
+            // CORNER CUBE (CC) - Static at origin
+            Mat4 cornerCubeModel = Mat4::translate(0, 0, 0)     // At origin (corner at 0,0,0)
+                                 * Mat4::scale(1.0f);           // Normal size
 
             // LIGHT SOURCE - Position far away in light direction
             Mat4 lightModel = Mat4::translate(lightPos.x, lightPos.y, lightPos.z)
@@ -239,10 +218,8 @@ int main() {
             renderer.beginShadowPass();
 
             // Render all shadow-casting objects
-            renderer.renderShadowMesh(ground, groundModel, lightSpaceMatrix);
-            renderer.renderShadowMesh(cube, cubeModel, lightSpaceMatrix);
-            renderer.renderShadowMesh(pyramid, pyramidModel, lightSpaceMatrix);
-            renderer.renderShadowMesh(sphere, sphereModel, lightSpaceMatrix);
+            renderer.renderShadowMesh(cornerCube, cornerCubeModel, lightSpaceMatrix);
+            renderer.renderShadowMesh(letterN, letterNModel, lightSpaceMatrix);
             // Don't render light source to shadow map (it's emissive)
 
             renderer.endShadowPass(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -253,13 +230,11 @@ int main() {
             // ==================================================================
             window.clear();  // Clear screen for normal rendering
 
-            // Draw ground first
-            renderer.drawMesh(ground, groundModel, camera, lightSpaceMatrix);
+            // Draw corner cube first
+            renderer.drawMesh(cornerCube, cornerCubeModel, camera, lightSpaceMatrix);
 
-            // Draw main objects
-            renderer.drawMesh(cube, cubeModel, camera, lightSpaceMatrix);
-            renderer.drawMesh(pyramid, pyramidModel, camera, lightSpaceMatrix);
-            renderer.drawMesh(sphere, sphereModel, camera, lightSpaceMatrix);
+            // Draw letter N (main object that casts shadow)
+            renderer.drawMesh(letterN, letterNModel, camera, lightSpaceMatrix);
 
             // Draw light source (emissive = true, so it glows and isn't affected by lighting)
             renderer.drawMesh(lightSource, lightModel, camera, lightSpaceMatrix, true);
